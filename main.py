@@ -473,13 +473,26 @@ async def mute(interaction: discord.Interaction, member: discord.Member, minutes
     # Timeout the member
     await member.timeout(timedelta(minutes=minutes), reason=reason)
     
-    # Respond with mute info + Google Form
+    # Google Form link
     form_url = "https://docs.google.com/forms/d/1QEZys41UEyubcov5jmhsq85LFPdhdlOw5Du71-iBjSw"
+    
+    # Attempt to DM the member
+    try:
+        await member.send(
+            f"🔇 You have been muted in **{interaction.guild.name}** for {minutes} minutes.\n"
+            f"Reason: {reason}\n\n"
+            f"Please fill out this form: [Mute Form]({form_url})"
+        )
+        dm_status = "✅ DM sent to the member."
+    except discord.Forbidden:
+        dm_status = "⚠️ Could not DM the member (they may have DMs off)."
+    
+    # Send response in the channel
     await interaction.response.send_message(
         f"🔇 {member.mention} has been muted for {minutes} minutes.\n"
-        f"Reason: {reason}\n\n"
-        f"Please fill out this form: [Mute Form]({form_url})"
+        f"Reason: {reason}\n{dm_status}"
     )
+
 
 # UNMUTE
 @bot.tree.command(name="unmute", description="Unmute a member")
