@@ -470,8 +470,16 @@ async def checkwarnings(interaction: discord.Interaction, member: discord.Member
 @app_commands.checks.has_permissions(moderate_members=True)
 @app_commands.guilds(guild)
 async def mute(interaction: discord.Interaction, member: discord.Member, minutes: int, reason: str = "No reason provided"):
+    # Timeout the member
     await member.timeout(timedelta(minutes=minutes), reason=reason)
-    await interaction.response.send_message(f"🔇 {member.mention} muted for {minutes} minutes.\nReason: {reason}")
+    
+    # Respond with mute info + Google Form
+    form_url = "https://docs.google.com/forms/d/1QEZys41UEyubcov5jmhsq85LFPdhdlOw5Du71-iBjSw"
+    await interaction.response.send_message(
+        f"🔇 {member.mention} has been muted for {minutes} minutes.\n"
+        f"Reason: {reason}\n\n"
+        f"Please fill out this form: [Mute Form]({form_url})"
+    )
 
 # UNMUTE
 @bot.tree.command(name="unmute", description="Unmute a member")
