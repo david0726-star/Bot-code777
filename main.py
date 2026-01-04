@@ -293,10 +293,10 @@ async def shop(interaction: discord.Interaction):
         )
     await interaction.response.send_message(embed=embed)
 
-@bot.tree.command(
-        name="buy",
-        description="Buy an item from the shop"
-    )
+@app.tree.command(
+    name="buy",
+    description="Buy an item from the shop"
+)
 @app_commands.choices(
         item=[
             app_commands.Choice(name="VIP Role", value="vip"),
@@ -304,56 +304,59 @@ async def shop(interaction: discord.Interaction):
             app_commands.Choice(name="Trial Mod (3 Days)", value="trialmod"),
             app_commands.Choice(name="Custom Bot PFP", value="custompfp")
         ]
-    )
+)
 @app_commands.guilds(guild)
 async def buy(interaction: discord.Interaction, item: app_commands.Choice[str]):
-        """Buy a shop item selected from a dropdown."""
+    """Buy a shop item selected from a dropdown."""
 
-        data = load_data()
-        uid = str(interaction.user.id)
-        ensure_user(data, uid)
+    data = load_data()
+    uid = str(interaction.user.id)
+    ensure_user(data, uid)
 
-        reward = REWARDS[item.value]
-        if data[uid]["points"] < reward["price"]:
-            return await interaction.response.send_message(
-                f"❌ You need **{reward['price']} points**. You have **{data[uid]['points']}**.",
-                ephemeral=True
-            )
-
-        # Deduct points
-        data[uid]["points"] -= reward["price"]
-        save_data(data)
-
-        role_msg = ""
-
-if item.value == "vip":
-    role = discord.utils.get(interaction.guild.roles, name=VIP_ROLE_NAME)
-    if role:
-        try:
-            await interaction.user.add_roles(role)
-            role_msg = f"✅ You received the **{VIP_ROLE_NAME}** role!"
-        except discord.Forbidden:
-            role_msg = "⚠️ I could not assign the role. Make sure my role is above VIP."
-    else:
-        role_msg = f"⚠️ Role **{VIP_ROLE_NAME}** not found in this server."
-
-elif item.value == "custompfp":
-    role_msg = "📌 Please open a ticket and send the image to customize the bot's profile picture!"
-
-        # Record purchase
-        history = load_purchase_history()
-        guild_id = str(interaction.guild.id)
-        history.setdefault(guild_id, []).append({
-            "user": f"{interaction.user} ({interaction.user.id})",
-            "item": reward["name"],
-            "points": reward["price"],
-            "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        })
-        save_purchase_history(history)
-
-        await interaction.response.send_message(
-            f"✅ Purchased **{reward['name']}** for {reward['price']} points. {role_msg}"
+    reward = REWARDS[item.value]
+    if data[uid]["points"] < reward["price"]:
+        return await interaction.response.send_message(
+            f"❌ You need **{reward['price']} points**. You have **{data[uid]['points']}**.",
+            ephemeral=True
         )
+
+    # Deduct points
+    data[uid]["points"] -= reward["price"]
+    save_data(data)
+
+    # -------------------- FIXED INDENTATION --------------------
+    role_msg = ""
+
+    if item.value == "vip":
+        role = discord.utils.get(interaction.guild.roles, name=VIP_ROLE_NAME)
+        if role:
+            try:
+                await interaction.user.add_roles(role)
+                role_msg = f"✅ You received the **{VIP_ROLE_NAME}** role!"
+            except discord.Forbidden:
+                role_msg = "⚠️ I could not assign the role. Make sure my role is above VIP."
+        else:
+            role_msg = f"⚠️ Role **{VIP_ROLE_NAME}** not found in this server."
+
+    elif item.value == "custompfp":
+        role_msg = "📌 Please open a ticket and send the image to customize the bot's profile picture!"
+    # ------------------------------------------------------------
+
+    # Record purchase
+    history = load_purchase_history()
+    guild_id = str(interaction.guild.id)
+    history.setdefault(guild_id, []).append({
+        "user": f"{interaction.user} ({interaction.user.id})",
+        "item": reward["name"],
+        "points": reward["price"],
+        "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    })
+    save_purchase_history(history)
+
+    await interaction.response.send_message(
+        f"✅ Purchased **{reward['name']}** for {reward['price']} points. {role_msg}"
+    )
+
 @bot.command()
 @commands.has_permissions(manage_guild=True)
 async def purchases(ctx):
