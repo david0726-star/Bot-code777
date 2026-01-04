@@ -160,7 +160,8 @@ async def on_member_remove(member):
 
 @bot.event
 async def on_message(message):
-    if message.author.bot: return
+    if message.author.bot:
+        return
     user_id = str(message.author.id)
 
     # ---- AFK removal ----
@@ -175,15 +176,13 @@ async def on_message(message):
         uid = str(user.id)
         if uid in data_afk:
             await message.channel.send(f"ℹ️ {user.display_name} is currently AFK: {data_afk[uid]}")
-        # ---- Points collection ----
-if message.channel.id == POINT_CHANNEL_ID:
-    data_points = load_data()
-    ensure_user(data_points, user_id)
 
-    data_points[user_id]["points"] += POINT_MULTIPLIER
+    # ---- Points collection ----
+    if message.channel.id == POINT_CHANNEL_ID:
+        data_points = load_data()
+        ensure_user(data_points, user_id)
 
-    save_data(data_points)
-
+        data_points[user_id]["points"] += POINT_MULTIPLIER
         save_data(data_points)
 
     # ---- GIF triggers ----
