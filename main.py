@@ -35,6 +35,8 @@ class MyBot(commands.Bot):
 bot = MyBot()
 
 # ---------------- JSON HELPERS ----------------
+POINT_MULTIPLIER = 1
+BOOST_ACTIVE = False
 VIP_ROLE_NAME = "VIP"  # Change this to your server's actual VIP role name
 PURCHASE_HISTORY_FILE = "purchase_history.json"
 DATA_FILE = "points.json"
@@ -93,7 +95,6 @@ REWARDS = {
     "vip": {"name": "VIP Role", "price": 300, "description": "Get the VIP role automatically!"},
     "customcommand": {"name": "Custom Bot Command", "price": 400, "description": "Get your own custom bot command"},
     "trialmod": {"name": "Trial Mod (3 Days)", "price": 1000, "description": "Trial moderator for 3 days"}
-    "custom bot's pfp": {"name": "Custom W Chat bot's pfp","price": 500,"decription": "custom the w chat bot's avatar for one day"
 }
 invites_cache = {}
 
@@ -173,12 +174,15 @@ async def on_message(message):
         uid = str(user.id)
         if uid in data_afk:
             await message.channel.send(f"ℹ️ {user.display_name} is currently AFK: {data_afk[uid]}")
+        # ---- Points collection ----
+if message.channel.id == POINT_CHANNEL_ID:
+    data_points = load_data()
+    ensure_user(data_points, user_id)
 
-    # ---- Points collection ----
-    if message.channel.id == POINT_CHANNEL_ID:
-        data_points = load_data()
-        ensure_user(data_points, user_id)
-        data_points[user_id]["points"] += 1
+    data_points[user_id]["points"] += POINT_MULTIPLIER
+
+    save_data(data_points)
+
         save_data(data_points)
 
     # ---- GIF triggers ----
@@ -366,6 +370,53 @@ async def purchases(ctx):
         )
 
     await ctx.send(embed=embed)
+@bot.tree.command(name="boost", description="Start a 4x points boost")
+@app_commands.checks.has_permissions(manage_guild=True)
+@app_commands.guilds(guild)
+async def boost(interaction: discord.Interaction):
+    global POINT_MULTIPLIER, BOOST_ACTIVE
+
+    if BOOST_ACTIVE:
+        return await interaction.response.send_message(
+            "⚠️ A boost is already active!",
+            ephemeral=True
+        )
+
+    POINT_MULTIPLIER = 4
+    BOOST_ACTIVE = True
+
+    channel = interaction.channel
+
+    await channel.send(
+        "@everyone 🔥 **4× POINT BOOST IS NOW ACTIVE!** 🔥\n"
+        "Chat now to earn points faster!"
+    )
+
+    await interaction.response.send_message(
+        "✅ 4× points boost started!"
+    )
+@bot.tree.command(name="endboost", description="End the points boost")
+@app_commands.checks.has_permissions(manage_guild=True)
+@app_commands.guilds(guild)
+async def endboost(interaction: discord.Interaction):
+    global POINT_MULTIPLIER, BOOST_ACTIVE
+
+    if not BOOST_ACTIVE:
+        return await interaction.response.send_message(
+            "⚠️ No boost is currently active.",
+            ephemeral=True
+        )
+
+    POINT_MULTIPLIER = 1
+    BOOST_ACTIVE = False
+
+    await interaction.channel.send(
+        "⏹️ **Point boost has ended.** Points are back to normal."
+    )
+
+    await interaction.response.send_message(
+        "✅ Boost ended."
+    )
 
 @bot.tree.command(name="afk", description="Set your AFK status")
 @app_commands.guilds(guild)
