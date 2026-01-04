@@ -93,6 +93,7 @@ REWARDS = {
     "vip": {"name": "VIP Role", "price": 300, "description": "Get the VIP role automatically!"},
     "customcommand": {"name": "Custom Bot Command", "price": 400, "description": "Get your own custom bot command"},
     "trialmod": {"name": "Trial Mod (3 Days)", "price": 1000, "description": "Trial moderator for 3 days"}
+    "custom bot's pfp": {"name": "Custom W Chat bot's pfp","price": 500,"decription": "custom the w chat bot's avatar for one day"
 }
 invites_cache = {}
 
