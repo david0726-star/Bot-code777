@@ -184,7 +184,6 @@ async def on_message(message):
 
         data_points[user_id]["points"] += POINT_MULTIPLIER
         save_data(data_points)
-
     # ---- GIF triggers ----
     content = message.content.lower().strip()
     for key, gif in gif_files.items():
