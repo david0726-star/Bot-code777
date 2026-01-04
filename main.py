@@ -291,7 +291,7 @@ async def shop(interaction: discord.Interaction):
         )
     await interaction.response.send_message(embed=embed)
 
-@app.tree.command(
+@bot.tree.command(
     name="buy",
     description="Buy an item from the shop"
 )
