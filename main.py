@@ -94,7 +94,8 @@ DAILY_COOLDOWN = 86400  # 24 hours
 REWARDS = {
     "vip": {"name": "VIP Role", "price": 300, "description": "Get the VIP role automatically!"},
     "customcommand": {"name": "Custom Bot Command", "price": 400, "description": "Get your own custom bot command"},
-    "trialmod": {"name": "Trial Mod (3 Days)", "price": 1000, "description": "Trial moderator for 3 days"}
+    "trialmod": {"name": "Trial Mod (3 Days)", "price": 1000, "description": "Trial moderator for 3 days"},
+    "custompfp": {"name": "Custom Bot PFP", "price": 500, "description": "Purchase this and open a ticket to customize the bot's profile picture!"}
 }
 invites_cache = {}
 
@@ -300,7 +301,8 @@ async def shop(interaction: discord.Interaction):
         item=[
             app_commands.Choice(name="VIP Role", value="vip"),
             app_commands.Choice(name="Custom Command", value="customcommand"),
-            app_commands.Choice(name="Trial Mod (3 Days)", value="trialmod")
+            app_commands.Choice(name="Trial Mod (3 Days)", value="trialmod"),
+            app_commands.Choice(name="Custom Bot PFP", value="custompfp")
         ]
     )
 @app_commands.guilds(guild)
@@ -323,16 +325,20 @@ async def buy(interaction: discord.Interaction, item: app_commands.Choice[str]):
         save_data(data)
 
         role_msg = ""
-        if item.value == "vip":
-            role = discord.utils.get(interaction.guild.roles, name=VIP_ROLE_NAME)
-            if role:
-                try:
-                    await interaction.user.add_roles(role)
-                    role_msg = f"✅ You received the **{VIP_ROLE_NAME}** role!"
-                except discord.Forbidden:
-                    role_msg = "⚠️ I could not assign the role. Make sure my role is above VIP."
-            else:
-                role_msg = f"⚠️ Role **{VIP_ROLE_NAME}** not found in this server."
+
+if item.value == "vip":
+    role = discord.utils.get(interaction.guild.roles, name=VIP_ROLE_NAME)
+    if role:
+        try:
+            await interaction.user.add_roles(role)
+            role_msg = f"✅ You received the **{VIP_ROLE_NAME}** role!"
+        except discord.Forbidden:
+            role_msg = "⚠️ I could not assign the role. Make sure my role is above VIP."
+    else:
+        role_msg = f"⚠️ Role **{VIP_ROLE_NAME}** not found in this server."
+
+elif item.value == "custompfp":
+    role_msg = "📌 Please open a ticket and send the image to customize the bot's profile picture!"
 
         # Record purchase
         history = load_purchase_history()
