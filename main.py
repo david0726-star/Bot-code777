@@ -377,15 +377,94 @@ async def purchases(ctx):
         )
 
     await ctx.send(embed=embed)
-@bot.tree.command(name="gift", decription="gift other users item in the reward shop")
+@bot.tree.command(
+    name="gift",
+    description="Gift a reward shop item to another user"
+)
 @app_commands.guilds(guild)
-async def gift(context):
-    last_purchase_history=load_purchase_history()
-    if user_id=ctx.author.id:
+@app_commands.choices(
+    item=[
+        app_commands.Choice(name="VIP Role", value="vip"),
+        app_commands.Choice(name="Custom Command", value="customcommand"),
+        app_commands.Choice(name="Trial Mod (3 Days)", value="trialmod"),
+        app_commands.Choice(name="Custom Bot PFP", value="custompfp")
+    ]
+)
+async def gift(
+    interaction: discord.Interaction,
+    member: discord.Member,
+    item: app_commands.Choice[str]
+):
+    giver_id = str(interaction.user.id)
+    receiver_id = str(member.id)
+
+    if member.bot:
+        return await interaction.response.send_message(
+            "❌ You cannot gift items to bots.",
+            ephemeral=True
+        )
+
+    data = load_data()
+    ensure_user(data, giver_id)
+    ensure_user(data, receiver_id)
+
+    reward = REWARDS[item.value]
+
+    # Check points
+    if data[giver_id]["points"] < reward["price"]:
+        return await interaction.response.send_message(
+            f"❌ You need **{reward['price']} points** to gift this item.\n"
+            f"You currently have **{data[giver_id]['points']} points**.",
+            ephemeral=True
+        )
+
+    # Deduct points
+    data[giver_id]["points"] -= reward["price"]
+    save_data(data)
+
+    # Handle rewards
+    gift_msg = ""
+
+    if item.value == "vip":
+        role = discord.utils.get(interaction.guild.roles, name=VIP_ROLE_NAME)
+        if role:
+            try:
+                await member.add_roles(role)
+                gift_msg = f"🎉 {member.mention} received the **VIP role**!"
+            except discord.Forbidden:
+                gift_msg = "⚠️ I couldn't assign the VIP role."
+        else:
+            gift_msg = "⚠️ VIP role not found."
+
+    elif item.value == "custompfp":
+        gift_msg = (
+            f"🎁 {member.mention} received **Custom Bot PFP**!\n"
+            f"📌 Please open a ticket to customize the bot."
+        )
+
+    else:
+        gift_msg = f"🎁 {member.mention} received **{reward['name']}**!"
+
+    # Save purchase history
+    history = load_purchase_history()
+    guild_id = str(interaction.guild.id)
+
+    history.setdefault(guild_id, []).append({
+        "user": f"{interaction.user} (gifted)",
+        "item": reward["name"],
+        "points": reward["price"],
+        "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "gifted_to": f"{member} ({member.id})"
+    })
+
+    save_purchase_history(history)
+
     await interaction.response.send_message(
-        f"what item do you want to gift?")
-    
-    
+        f"✅ **Gift Sent!**\n"
+        f"{interaction.user.mention} gifted **{reward['name']}** to {member.mention}.\n"
+        f"{gift_msg}"
+    )
+
 
 @bot.tree.command(name="boost", description="Start a 4x points boost")
 @app_commands.checks.has_permissions(manage_guild=True)
