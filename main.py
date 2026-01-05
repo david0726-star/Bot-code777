@@ -200,17 +200,17 @@ async def on_message(message):
 async def hello(ctx):
     await ctx.send(f"Hello {ctx.author.name}!")
 
-@bot.tree.command(name="points", description="Check points")
+@bot.tree.command(name="points", description="Check Shadow points")
 @app_commands.guilds(guild)
 async def points(interaction: discord.Interaction, member: discord.Member = None):
     member = member or interaction.user
     data = load_data()
     pts = data.get(str(member.id), {}).get("points", 0)
     await interaction.response.send_message(
-        f"💬 **{member.display_name}** has **{pts} W Chat Points**"
+        f"💬 **{member.display_name}** has **{pts} Shadow Points**"
     )
 
-@bot.tree.command(name="givepoints", description="Give points to a member")
+@bot.tree.command(name="givepoints", description="Give Shadow points to a member")
 @app_commands.checks.has_permissions(manage_guild=True)
 @app_commands.guilds(guild)
 async def givepoints(interaction: discord.Interaction, member: discord.Member, amount: int):
@@ -219,9 +219,9 @@ async def givepoints(interaction: discord.Interaction, member: discord.Member, a
     data[str(member.id)]["points"] += amount
     save_data(data)
     await interaction.response.send_message(
-        f"✅ Gave **{amount} W Chat Points** to {member.mention}"
+        f"✅ Gave **{amount} Shadow Points** to {member.mention}"
     )
-@bot.tree.command(name="removepoints", description="Remove points from a member")
+@bot.tree.command(name="removepoints", description="Remove Shadow points from a member")
 @app_commands.guilds(guild)
 async def removepoints(interaction: discord.Interaction, member: discord.Member, amount: int):
     data = load_data()
@@ -229,9 +229,9 @@ async def removepoints(interaction: discord.Interaction, member: discord.Member,
     data[str(member.id)]["points"] = max(data[str(member.id)]["points"] - amount, 0)
     save_data(data)
     await interaction.response.send_message(
-        f"✅ Removed **{amount} W Chat Points** from {member.mention}"
+        f"✅ Removed **{amount} Shadow Points** from {member.mention}"
     )
-@bot.tree.command(name="leaderboard", description="Show top points leaderboard")
+@bot.tree.command(name="leaderboard", description="Show top Shadow points leaderboard")
 @app_commands.guilds(guild)
 async def leaderboard(interaction: discord.Interaction):
     data = load_data()
@@ -239,7 +239,7 @@ async def leaderboard(interaction: discord.Interaction):
         return await interaction.response.send_message("❌ No data yet.")
 
     sorted_users = sorted(data.items(), key=lambda x: x[1]["points"], reverse=True)
-    embed = discord.Embed(title="🏆 W Chat Leaderboard", color=discord.Color.gold())
+    embed = discord.Embed(title="🏆 Shadow points Leaderboard", color=discord.Color.gold())
 
     for i, (uid, info) in enumerate(sorted_users[:10], start=1):
         member = interaction.guild.get_member(int(uid))
@@ -251,7 +251,7 @@ async def leaderboard(interaction: discord.Interaction):
         )
 
     await interaction.response.send_message(embed=embed)
-@bot.tree.command(name="daily", description="Claim daily points")
+@bot.tree.command(name="daily", description="Claim daily Shadow Points")
 @app_commands.guilds(guild)
 async def daily(interaction: discord.Interaction):
     data = load_data()
@@ -266,7 +266,7 @@ async def daily(interaction: discord.Interaction):
         data[uid]["last_daily"] = now
         save_data(data)
         await interaction.response.send_message(
-            f"🎁 You received **{DAILY_AMOUNT} W Chat Points**!"
+            f"🎁 You received **{DAILY_AMOUNT} Shadow Points**!"
         )
     else:
         remaining = DAILY_COOLDOWN - (now - last)
@@ -279,13 +279,13 @@ async def daily(interaction: discord.Interaction):
 @app_commands.guilds(guild)
 async def shop(interaction: discord.Interaction):
     embed = discord.Embed(
-        title="🛒 W Chat Reward Shop",
+        title="🛒 Shadow Reward Shop",
         description="Use `/buy <item>`",
         color=discord.Color.green()
     )
     for key, r in REWARDS.items():
         embed.add_field(
-            name=f"{r['name']} — {r['price']} points",
+            name=f"{r['name']} — {r['price']} Shadow points",
             value=f"ID: `{key}`\n{r['description']}",
             inline=False
         )
@@ -314,7 +314,7 @@ async def buy(interaction: discord.Interaction, item: app_commands.Choice[str]):
     reward = REWARDS[item.value]
     if data[uid]["points"] < reward["price"]:
         return await interaction.response.send_message(
-            f"❌ You need **{reward['price']} points**. You have **{data[uid]['points']}**.",
+            f"❌ You need **{reward['price']} Shadow Points**. You have **{data[uid]['points']}**.",
             ephemeral=True
         )
 
@@ -352,7 +352,8 @@ async def buy(interaction: discord.Interaction, item: app_commands.Choice[str]):
     save_purchase_history(history)
 
     await interaction.response.send_message(
-        f"✅ Purchased **{reward['name']}** for {reward['price']} points. {role_msg}"
+        f"✅ Purchased **{reward['name']}** for {reward['price']} Shadow Points."
+
     )
 
 @bot.command()
@@ -414,7 +415,7 @@ async def gift(
     if data[giver_id]["points"] < reward["price"]:
         return await interaction.response.send_message(
             f"❌ You need **{reward['price']} points** to gift this item.\n"
-            f"You currently have **{data[giver_id]['points']} points**.",
+            f"You currently have **{data[giver_id]['points']} Shadow Points**.",
             ephemeral=True
         )
 
