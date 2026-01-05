@@ -381,8 +381,10 @@ async def purchases(ctx):
 @app_commands.guilds(guild)
 async def gift(context):
     last_purchase_history=load_purchase_history()
+    if user_id=ctx.author.id:
     await interaction.response.send_message(
         f"what item do you want to gift?")
+    
     
 
 @bot.tree.command(name="boost", description="Start a 4x points boost")
