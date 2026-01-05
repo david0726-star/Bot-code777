@@ -377,6 +377,14 @@ async def purchases(ctx):
         )
 
     await ctx.send(embed=embed)
+@bot.tree.command(name="gift", decription="gift other users item in the reward shop")
+@app_commands.guilds(guild)
+async def gift(context):
+    last_purchase_history=load_purchase_history()
+    await interaction.response.send_message(
+        f"what item do you want to gift?")
+    
+
 @bot.tree.command(name="boost", description="Start a 4x points boost")
 @app_commands.checks.has_permissions(manage_guild=True)
 @app_commands.guilds(guild)
