@@ -4,12 +4,11 @@ import json
 import asyncio
 import time
 import random
+import sys
 from discord.ext import commands
 from datetime import datetime, timedelta
-from keep_alive import keep_alive
 from discord import app_commands
 
-keep_alive()
 
 # ---------------- BOT SETUP ----------------
 intents = discord.Intents.default()
@@ -29,9 +28,9 @@ class MyBot(commands.Bot):
             )
 
     async def setup_hook(self):
+    if os.environ.get("SYNC_COMMANDS") == "1":
         await self.tree.sync(guild=guild)
         print("✅ Slash commands synced")
-
 bot = MyBot()
 
 # ---------------- JSON HELPERS ----------------
@@ -838,4 +837,15 @@ async def serverinfo(interaction: discord.Interaction):
     await interaction.response.send_message(embed=embed)
 
 # ---------------- RUN BOT ----------------
-bot.run(os.environ["DISCORD_BOT_TOKEN"])
+TOKEN = os.environ.get("DISCORD_BOT_TOKEN")
+
+if not TOKEN:
+    print("❌ DISCORD_BOT_TOKEN is missing")
+    sys.exit(1)
+
+try:
+    bot.run(TOKEN)
+except discord.HTTPException as e:
+    print("❌ Discord login failed. NOT retrying.")
+    print(e)
+    sys.exit(1)
