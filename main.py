@@ -27,7 +27,7 @@ class MyBot(commands.Bot):
                 application_id=1450834238843912233
             )
 
-    async def setup_hook(self):
+async def setup_hook(self):
     if os.environ.get("SYNC_COMMANDS") == "1":
         await self.tree.sync(guild=guild)
         print("✅ Slash commands synced")
